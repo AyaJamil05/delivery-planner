@@ -23,4 +23,23 @@ public class DeliveryService {
     public Delivery addDelivery(Delivery delivery) {
         return deliveryRepository.save(delivery);
     }
+    
+    public Delivery updateDelivery(Long id, Delivery delivery) {
+
+        Delivery existingDelivery = deliveryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Livraison introuvable"));
+
+        existingDelivery.setClient(delivery.getClient());
+        existingDelivery.setAddress(delivery.getAddress());
+
+        return deliveryRepository.save(existingDelivery);
+    }
+    
+    public void deleteDelivery(Long id) {
+        if (!deliveryRepository.existsById(id)) {
+            throw new RuntimeException("Livraison introuvable");
+        }
+
+        deliveryRepository.deleteById(id);
+    }
 }
