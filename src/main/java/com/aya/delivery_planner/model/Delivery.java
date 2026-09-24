@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Delivery {
@@ -15,13 +16,17 @@ public class Delivery {
     private String client;
     private String address;
 
+    @ManyToOne
+    private Driver driver;
+
     public Delivery() {
     }
 
-    public Delivery(Long id, String client, String address) {
+    public Delivery(Long id, String client, String address, Driver driver) {
         this.id = id;
         this.client = client;
         this.address = address;
+        this.driver = driver;
     }
 
     public Delivery(String client, String address) {
@@ -41,11 +46,19 @@ public class Delivery {
         return address;
     }
 
+    public Driver getDriver() {
+        return driver;
+    }
+
     public void setClient(String client) {
         this.client = client;
     }
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public void setDriver(Driver driver) {
+        this.driver = driver;
     }
 }
