@@ -8,6 +8,7 @@ import com.aya.delivery_planner.model.Delivery;
 import com.aya.delivery_planner.model.Driver;
 import com.aya.delivery_planner.repository.DeliveryRepository;
 import com.aya.delivery_planner.repository.DriverRepository;
+import com.aya.delivery_planner.model.AssignmentResult;
 
 @Service
 public class AssignmentService {
@@ -15,6 +16,22 @@ public class AssignmentService {
     private final DriverRepository driverRepository;
     private final DeliveryRepository deliveryRepository;
     private final DistanceService distanceService;
+    
+    public List<AssignmentResult> assignAllUnassignedDeliveries() {
+
+        List<Delivery> deliveries = deliveryRepository.findByDriverIsNull();
+
+        List<AssignmentResult> results = new java.util.ArrayList<>();
+
+        for (Delivery delivery : deliveries) {
+
+            AssignmentResult result = assignNearestDriver(delivery.getId());
+
+            results.add(result);
+        }
+
+        return results;
+    }
 
     public AssignmentService(
             DriverRepository driverRepository,
@@ -25,8 +42,12 @@ public class AssignmentService {
         this.deliveryRepository = deliveryRepository;
         this.distanceService = distanceService;
     }
+    
+    private long countDeliveriesForDriver(Long driverId, Long deliveryId) {
+        return deliveryRepository.countByDriverIdAndIdNot(driverId, deliveryId);
+    }
 
-    public Delivery assignNearestDriver(Long deliveryId) {
+    public AssignmentResult assignNearestDriver(Long deliveryId) {
 
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new RuntimeException("Livraison introuvable"));
@@ -37,7 +58,8 @@ public class AssignmentService {
 
         List<Driver> drivers = driverRepository.findAll();
 
-        Driver nearestDriver = null;
+        Driver selectedDriver = null;
+        long lowestLoad = Long.MAX_VALUE;
         double shortestDistance = Double.MAX_VALUE;
 
         for (Driver driver : drivers) {
@@ -53,18 +75,36 @@ public class AssignmentService {
                     driver.getLongitude()
             );
 
-            if (distance < shortestDistance) {
+            long driverLoad = countDeliveriesForDriver(
+                    driver.getId(),
+                    deliveryId
+            );
+
+            if (driverLoad < lowestLoad
+                    || (driverLoad == lowestLoad && distance < shortestDistance)) {
+
+                lowestLoad = driverLoad;
                 shortestDistance = distance;
-                nearestDriver = driver;
+                selectedDriver = driver;
             }
         }
 
-        if (nearestDriver == null) {
-            throw new RuntimeException("Aucun chauffeur avec des coordonnées disponibles");
+        if (selectedDriver == null) {
+            throw new RuntimeException(
+                    "Aucun chauffeur avec des coordonnées disponibles");
         }
 
-        delivery.setDriver(nearestDriver);
+        delivery.setDriver(selectedDriver);
+        delivery.setStatus("ASSIGNED");
+        deliveryRepository.save(delivery);
 
-        return deliveryRepository.save(delivery);
+        double roundedDistance = Math.round(shortestDistance * 100.0) / 100.0;
+        
+        return new AssignmentResult(
+                delivery,
+                selectedDriver,
+                roundedDistance,
+                lowestLoad
+        );
     }
 }

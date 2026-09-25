@@ -36,6 +36,10 @@ public class DeliveryService {
 
             delivery.setDriver(driver);
         }
+        
+        if (delivery.getStatus() == null) {
+            delivery.setStatus("PENDING");
+        }
 
         return deliveryRepository.save(delivery);
     }

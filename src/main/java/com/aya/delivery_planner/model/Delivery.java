@@ -17,6 +17,7 @@ public class Delivery {
     private String address;
     private Double latitude;
     private Double longitude;
+    private String status = "PENDING";
 
     @ManyToOne
     private Driver driver;
@@ -78,5 +79,13 @@ public class Delivery {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

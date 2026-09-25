@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
+import com.aya.delivery_planner.model.AssignmentResult;
 import com.aya.delivery_planner.model.Delivery;
+
 import com.aya.delivery_planner.service.DeliveryService;
 import com.aya.delivery_planner.service.AssignmentService;
 
@@ -51,7 +53,12 @@ public class DeliveryController {
     }
     
     @PostMapping("/api/deliveries/{id}/assign")
-    public Delivery assignDriver(@PathVariable Long id) {
+    public AssignmentResult assignDriver(@PathVariable Long id) {
         return assignmentService.assignNearestDriver(id);
+    }
+    
+    @PostMapping("/api/deliveries/assign-all")
+    public List<AssignmentResult> assignAllDeliveries() {
+        return assignmentService.assignAllUnassignedDeliveries();
     }
 }
