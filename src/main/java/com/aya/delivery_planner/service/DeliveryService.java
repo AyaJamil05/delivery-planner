@@ -39,17 +39,17 @@ public class DeliveryService {
 
         return deliveryRepository.save(delivery);
     }
-    
-    public Delivery updateDelivery(Long id, Delivery delivery) {
 
+    public Delivery updateDelivery(Long id, Delivery delivery) {
         Delivery existingDelivery = deliveryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Livraison introuvable"));
 
         existingDelivery.setClient(delivery.getClient());
         existingDelivery.setAddress(delivery.getAddress());
+        existingDelivery.setLatitude(delivery.getLatitude());
+        existingDelivery.setLongitude(delivery.getLongitude());
 
         if (delivery.getDriver() != null) {
-
             Long driverId = delivery.getDriver().getId();
 
             Driver driver = driverRepository.findById(driverId)

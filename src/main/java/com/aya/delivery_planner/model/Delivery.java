@@ -15,6 +15,8 @@ public class Delivery {
 
     private String client;
     private String address;
+    private Double latitude;
+    private Double longitude;
 
     @ManyToOne
     private Driver driver;
@@ -49,6 +51,14 @@ public class Delivery {
     public Driver getDriver() {
         return driver;
     }
+    
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
 
     public void setClient(String client) {
         this.client = client;
@@ -60,5 +70,13 @@ public class Delivery {
 
     public void setDriver(Driver driver) {
         this.driver = driver;
+    }
+    
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }

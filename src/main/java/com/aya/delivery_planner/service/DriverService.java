@@ -23,4 +23,16 @@ public class DriverService {
     public Driver addDriver(Driver driver) {
         return driverRepository.save(driver);
     }
+
+    public Driver updateDriver(Long id, Driver driver) {
+
+        Driver existingDriver = driverRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chauffeur introuvable"));
+
+        existingDriver.setName(driver.getName());
+        existingDriver.setLatitude(driver.getLatitude());
+        existingDriver.setLongitude(driver.getLongitude());
+
+        return driverRepository.save(existingDriver);
+    }
 }

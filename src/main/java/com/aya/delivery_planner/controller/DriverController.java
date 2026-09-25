@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,5 +29,13 @@ public class DriverController {
     @PostMapping("/api/drivers")
     public Driver createDriver(@RequestBody Driver driver) {
         return driverService.addDriver(driver);
+    }
+
+    @PutMapping("/api/drivers/{id}")
+    public Driver updateDriver(
+            @PathVariable Long id,
+            @RequestBody Driver driver) {
+
+        return driverService.updateDriver(id, driver);
     }
 }
