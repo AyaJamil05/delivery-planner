@@ -116,3 +116,29 @@ body {
     padding: 25px;
   }
 }
+
+.action-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.assign-button {
+  background: #0077b6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.assign-button:hover {
+  background: #005f8f;
+}
+
+.assign-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

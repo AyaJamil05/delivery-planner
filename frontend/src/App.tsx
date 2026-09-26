@@ -22,6 +22,41 @@ function App() {
 
   const [deliveries, setDeliveries] = useState<Delivery[]>([])
   const [drivers, setDrivers] = useState<Driver[]>([])
+  const [isAssigning, setIsAssigning] = useState(false)
+
+  const assignAllDeliveries = () => {
+
+      setIsAssigning(true)
+
+      fetch('http://localhost:8080/api/deliveries/assign-all', {
+        method: 'POST'
+      })
+        .then(response => response.json())
+        .then(() => {
+
+          return fetch('http://localhost:8080/api/deliveries')
+
+        })
+        .then(response => response.json())
+        .then(data => {
+
+          setDeliveries(data)
+
+        })
+        .catch(error => {
+
+          console.error(
+            'Erreur lors de l’affectation des livraisons :',
+            error
+          )
+
+        })
+        .finally(() => {
+
+          setIsAssigning(false)
+
+        })
+    }
 
   useEffect(() => {
 
@@ -54,6 +89,20 @@ function App() {
       </header>
 
       <main className="dashboard">
+
+        <div className="action-bar">
+
+          <button
+            className="assign-button"
+            onClick={assignAllDeliveries}
+            disabled={isAssigning}
+          >
+            {isAssigning
+              ? 'Affectation en cours...'
+              : 'Affecter les livraisons automatiquement'}
+          </button>
+
+        </div>
 
         {/* LIVRAISONS */}
 
