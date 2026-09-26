@@ -18,6 +18,9 @@ import com.aya.delivery_planner.model.Delivery;
 import com.aya.delivery_planner.service.DeliveryService;
 import com.aya.delivery_planner.service.AssignmentService;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 public class DeliveryController {
 

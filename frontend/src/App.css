@@ -1,0 +1,118 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7fa;
+  color: #1f2933;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.header {
+  background: #0077b6;
+  color: white;
+  padding: 30px 50px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.header p {
+  margin: 8px 0 0;
+  font-size: 16px;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  padding: 40px 50px;
+}
+
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 25px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #0077b6;
+}
+
+.badge {
+  background: #e6f4fa;
+  color: #0077b6;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-weight: bold;
+}
+
+.delivery,
+.driver {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.delivery:last-child,
+.driver:last-child {
+  border-bottom: none;
+}
+
+.delivery p,
+.driver p {
+  margin: 5px 0 0;
+  color: #6b7280;
+}
+
+.status,
+.available {
+  font-size: 12px;
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 12px;
+}
+
+.assigned {
+  background: #dff6e7;
+  color: #218739;
+}
+
+.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.available {
+  background: #e6f4fa;
+  color: #0077b6;
+}
+
+@media (max-width: 800px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+    padding: 25px;
+  }
+
+  .header {
+    padding: 25px;
+  }
+}

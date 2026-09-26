@@ -1,52 +1,19 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+@"
+# Java / Maven
+backend/delivery-planner/target/
+backend/delivery-planner/.classpath
+backend/delivery-planner/.project
+backend/delivery-planner/.settings/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Node / React
+frontend/node_modules/
+frontend/dist/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+# IDE
 .vscode/
-
-# Maven
-target/
-
-# Eclipse
-.classpath
-.project
-.settings/
-
-# IntelliJ
 .idea/
-*.iml
-
-# VS Code
-.vscode/
 
 # OS
 .DS_Store
 Thumbs.db
+"@ | Set-Content .gitignore
