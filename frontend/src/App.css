@@ -142,3 +142,105 @@ body {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.add-delivery-card {
+  grid-column: 1 / -1;
+}
+
+.delivery-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.delivery-form input {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.delivery-form input:focus {
+  border-color: #0077b6;
+}
+
+.add-button {
+  grid-column: 1 / -1;
+  background: #0077b6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background: #005f8f;
+}
+
+.add-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 800px) {
+  .delivery-form {
+    grid-template-columns: 1fr;
+  }
+
+  .add-button {
+    grid-column: auto;
+  }
+}
+
+.edit-delivery-card {
+  grid-column: 1 / -1;
+}
+
+.edit-button {
+  background: #e6f4fa;
+  color: #0077b6;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 15px;
+}
+
+.edit-button:hover {
+  background: #d2edf7;
+}
+
+.cancel-button {
+  grid-column: 1 / -1;
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background: #d1d5db;
+}
+
+.delete-button {
+  background: #fde8e8;
+  color: #c62828;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.delete-button:hover {
+  background: #fbd5d5;
+}
