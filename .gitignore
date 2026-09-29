@@ -17,3 +17,7 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 "@ | Set-Content .gitignore
+
+# Documents personnels / cours
+Outils et technologies.pdf
+Séance1.odt
