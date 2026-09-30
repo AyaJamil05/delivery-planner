@@ -32,6 +32,13 @@ interface DeliveryDistance {
   distance: number
 }
 
+interface Route {
+  deliveryId: number
+  positions: [number, number][]
+  distance: number
+  duration: number
+}
+
 const driverIcon = L.divIcon({
   className: 'custom-map-icon',
   html: '<div class="map-marker driver-marker"><span>●</span></div>',
@@ -63,6 +70,7 @@ function App() {
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [distances, setDistances] = useState<DeliveryDistance[]>([])
+  const [routes, setRoutes] = useState<Route[]>([])
 
   const [driverName, setDriverName] = useState('')
   const [driverLatitude, setDriverLatitude] = useState('')
@@ -380,6 +388,78 @@ function App() {
         })
     }
 
+    const fetchRoute = (
+      deliveryId: number,
+      driverLatitude: number,
+      driverLongitude: number,
+      deliveryLatitude: number,
+      deliveryLongitude: number
+    ) => {
+
+      const url =
+        `https://router.project-osrm.org/route/v1/driving/` +
+        `${driverLongitude},${driverLatitude};` +
+        `${deliveryLongitude},${deliveryLatitude}` +
+        `?overview=full&geometries=geojson`
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+
+          if (!data.routes || data.routes.length === 0) {
+            return
+          }
+
+          const coordinates = data.routes[0].geometry.coordinates
+
+          const positions: [number, number][] = coordinates.map(
+            (coordinate: [number, number]) => [
+              coordinate[1],
+              coordinate[0]
+            ]
+          )
+
+          const distance = data.routes[0].distance
+          const duration = data.routes[0].duration
+
+          setRoutes(prev => {
+
+            const existing = prev.find(
+              route => route.deliveryId === deliveryId
+            )
+
+            if (existing) {
+              return prev.map(route =>
+                route.deliveryId === deliveryId
+                  ? {
+                      deliveryId,
+                      positions,
+                      distance,
+                      duration
+                    }
+                  : route
+              )
+            }
+
+            return [
+              ...prev,
+              {
+                deliveryId,
+                positions,
+                distance,
+                duration
+              }
+            ]
+          })
+        })
+        .catch(error => {
+          console.error(
+            'Erreur lors du calcul du trajet :',
+            error
+          )
+        })
+    }
+
   useEffect(() => {
 
     fetch('http://localhost:8080/api/deliveries')
@@ -415,6 +495,14 @@ function App() {
       ) {
         return
       }
+
+      fetchRoute(
+        delivery.id,
+        delivery.driver.latitude,
+        delivery.driver.longitude,
+        delivery.latitude,
+        delivery.longitude
+      )
 
       fetch(
         `http://localhost:8080/api/distance` +
@@ -467,6 +555,21 @@ function App() {
     }
 
     return status.trim().toUpperCase()
+  }
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.round(seconds / 60)
+
+    if (minutes < 60) {
+      return `${minutes} min`
+    }
+
+    const hours = Math.floor(minutes / 60)
+    const remainingMinutes = minutes % 60
+
+    return remainingMinutes === 0
+      ? `${hours} h`
+      : `${hours} h ${remainingMinutes} min`
   }
 
   const pendingCount = deliveries.filter(
@@ -687,35 +790,43 @@ function App() {
                 if (delivery.latitude === null || delivery.longitude === null) return null
                 return (
                   <Marker key={`delivery-${delivery.id}`} position={[delivery.latitude, delivery.longitude]} icon={deliveryIcon}>
-                    <Popup>
-                      <strong>{delivery.client}</strong><br />
-                      {delivery.address}<br />
-                      Statut : {getStatusLabel(delivery.status)}<br />
-                      Livreur : {delivery.driver ? delivery.driver.name : 'Aucun'}
-                    </Popup>
+                  <Popup>
+                    <strong>{delivery.client}</strong><br />
+                    {delivery.address}<br />
+
+                    Statut : {getStatusLabel(delivery.status)}<br />
+
+                    Livreur : {delivery.driver
+                      ? delivery.driver.name
+                      : 'Aucun'}<br />
+
+                    {(() => {
+                      const route = routes.find(
+                        item => item.deliveryId === delivery.id
+                      )
+
+                      if (!route) {
+                        return null
+                      }
+
+                      return (
+                        <>
+                          Distance : {(route.distance / 1000).toFixed(2)} km<br />
+                          Durée estimée : {formatDuration(route.duration)}
+                        </>
+                      )
+                    })()}
+                  </Popup>
                   </Marker>
                 )
               })}
 
-              {deliveries.map(delivery => {
-                if (
-                  delivery.driver === null ||
-                  delivery.latitude === null ||
-                  delivery.longitude === null ||
-                  delivery.driver.latitude === null ||
-                  delivery.driver.longitude === null
-                ) return null
-
-                return (
-                  <Polyline
-                    key={`line-${delivery.id}`}
-                    positions={[
-                      [delivery.driver.latitude, delivery.driver.longitude],
-                      [delivery.latitude, delivery.longitude]
-                    ]}
-                  />
-                )
-              })}
+              {routes.map(route => (
+                <Polyline
+                  key={`route-${route.deliveryId}`}
+                  positions={route.positions}
+                />
+              ))}
             </MapContainer>
           </section>
         </section>
@@ -737,6 +848,7 @@ function App() {
                   <th>Adresse</th>
                   <th>Coordonnées</th>
                   <th>Distance</th>
+                  <th>Durée</th>
                   <th>Livreur</th>
                   <th>Statut</th>
                   <th>Actions</th>
@@ -744,7 +856,9 @@ function App() {
               </thead>
               <tbody>
                 {deliveries.map(delivery => {
-                  const distance = distances.find(item => item.deliveryId === delivery.id)
+                  const route = routes.find(
+                    item => item.deliveryId === delivery.id
+                  )
                   return (
                     <tr key={delivery.id}>
                       <td className="id-cell">#{delivery.id}</td>
@@ -756,7 +870,18 @@ function App() {
                           : '—'}
                       </td>
                       <td className="distance-cell">
-                        {delivery.driver ? (distance ? `${distance.distance.toFixed(2)} km` : 'Calcul...') : '—'}
+                        {delivery.driver
+                          ? route
+                            ? `${(route.distance / 1000).toFixed(2)} km`
+                            : 'Calcul...'
+                          : '—'}
+                      </td>
+                      <td className="distance-cell">
+                        {delivery.driver
+                          ? route
+                            ? `${formatDuration(route.duration)}`
+                            : 'Calcul...'
+                          : '—'}
                       </td>
                       <td>{delivery.driver ? delivery.driver.name : <span className="muted">Aucun</span>}</td>
                       <td>
@@ -791,7 +916,7 @@ function App() {
                   )
                 })}
                 {deliveries.length === 0 && (
-                  <tr><td colSpan={8} className="empty-row">Aucune livraison pour le moment.</td></tr>
+                  <tr><td colSpan={9} className="empty-row">Aucune livraison pour le moment.</td></tr>
                 )}
               </tbody>
             </table>
