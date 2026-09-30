@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import com.aya.delivery_planner.model.Driver;
 import com.aya.delivery_planner.service.DriverService;
+
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -35,10 +37,12 @@ public class DriverController {
     }
 
     @PutMapping("/api/drivers/{id}")
-    public Driver updateDriver(
-            @PathVariable Long id,
-            @RequestBody Driver driver) {
-
-        return driverService.updateDriver(id, driver);
+    public Driver updateDriver(@PathVariable Long id, @RequestBody Driver driver) {
+    	return driverService.updateDriver(id, driver);
+    }
+    
+    @DeleteMapping("/api/drivers/{id}")
+    public void deleteDriver(@PathVariable Long id) {
+        driverService.deleteDriver(id);
     }
 }

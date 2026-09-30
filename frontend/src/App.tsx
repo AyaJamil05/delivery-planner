@@ -64,6 +64,14 @@ function App() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [distances, setDistances] = useState<DeliveryDistance[]>([])
 
+  const [driverName, setDriverName] = useState('')
+  const [driverLatitude, setDriverLatitude] = useState('')
+  const [driverLongitude, setDriverLongitude] = useState('')
+  const [isAddingDriver, setIsAddingDriver] = useState(false)
+
+  const [editingDriver, setEditingDriver] = useState<Driver | null>(null)
+  const [isUpdatingDriver, setIsUpdatingDriver] = useState(false)
+
   const assignAllDeliveries = () => {
 
       setIsAssigning(true)
@@ -216,6 +224,124 @@ function App() {
         .catch(error => {
           console.error(
             'Erreur lors de la suppression de la livraison :',
+            error
+          )
+        })
+    }
+
+    const addDriver = () => {
+      if (!driverName || !driverLatitude || !driverLongitude) {
+        alert('Veuillez remplir tous les champs')
+        return
+      }
+
+      setIsAddingDriver(true)
+
+      const newDriver = {
+        name: driverName,
+        latitude: Number(driverLatitude),
+        longitude: Number(driverLongitude)
+      }
+
+      fetch('http://localhost:8080/api/drivers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newDriver)
+      })
+        .then(response => response.json())
+        .then(data => {
+          setDrivers(prev => [...prev, data])
+
+          setDriverName('')
+          setDriverLatitude('')
+          setDriverLongitude('')
+        })
+        .catch(error => {
+          console.error('Erreur lors de l’ajout du livreur :', error)
+        })
+        .finally(() => {
+          setIsAddingDriver(false)
+        })
+    }
+
+    const updateDriver = () => {
+      if (!editingDriver) {
+        return
+      }
+
+      if (
+        !editingDriver.name ||
+        editingDriver.latitude === null ||
+        editingDriver.longitude === null
+      ) {
+        alert('Veuillez remplir tous les champs')
+        return
+      }
+
+      setIsUpdatingDriver(true)
+
+      fetch(`http://localhost:8080/api/drivers/${editingDriver.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: editingDriver.name,
+          latitude: editingDriver.latitude,
+          longitude: editingDriver.longitude
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          setDrivers(prev =>
+            prev.map(driver =>
+              driver.id === data.id ? data : driver
+            )
+          )
+
+          setEditingDriver(null)
+        })
+        .catch(error => {
+          console.error(
+            'Erreur lors de la modification du livreur :',
+            error
+          )
+        })
+        .finally(() => {
+          setIsUpdatingDriver(false)
+        })
+    }
+
+    const deleteDriver = (id: number) => {
+
+      const confirmed = window.confirm(
+        'Voulez-vous vraiment supprimer ce livreur ?'
+      )
+
+      if (!confirmed) {
+        return
+      }
+
+      fetch(`http://localhost:8080/api/drivers/${id}`, {
+        method: 'DELETE'
+      })
+        .then(async response => {
+
+          if (!response.ok) {
+            const message = await response.text()
+            throw new Error(message)
+          }
+
+          setDrivers(prev =>
+            prev.filter(driver => driver.id !== id)
+          )
+        })
+        .catch(error => {
+          alert(error.message)
+          console.error(
+            'Erreur lors de la suppression du livreur :',
             error
           )
         })
@@ -536,33 +662,213 @@ function App() {
         )}
 
         <section id="chauffeurs" className="panel drivers-panel">
-          <div className="panel-title">
-            <div><h2>Gestion des livreurs</h2></div>
+
+          <div className="panel-title drivers-title">
+            <div>
+              <h2>Gestion des livreurs</h2>
+            </div>
           </div>
+
+          <div className="driver-form">
+            <input
+              type="text"
+              placeholder="Nom du livreur"
+              value={driverName}
+              onChange={event => setDriverName(event.target.value)}
+            />
+
+            <input
+              type="number"
+              step="any"
+              placeholder="Latitude"
+              value={driverLatitude}
+              onChange={event => setDriverLatitude(event.target.value)}
+            />
+
+            <input
+              type="number"
+              step="any"
+              placeholder="Longitude"
+              value={driverLongitude}
+              onChange={event => setDriverLongitude(event.target.value)}
+            />
+
+            <button
+              className="primary-button"
+              onClick={addDriver}
+              disabled={isAddingDriver}
+            >
+              {isAddingDriver ? 'Ajout...' : 'Ajouter le livreur'}
+            </button>
+          </div>
+
           <div className="table-wrapper">
             <table className="deliveries-table drivers-table">
-              <thead><tr><th>ID</th><th>Livreur</th><th>Coordonnées</th><th>Livraisons</th><th>Charge</th><th>Disponibilité</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Livreur</th>
+                  <th>Coordonnées</th>
+                  <th>Livraisons</th>
+                  <th>Disponibilité</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
               <tbody>
                 {drivers.map(driver => {
-                  const numberOfDeliveries = deliveries.filter(delivery => delivery.driver?.id === driver.id).length
-                  const maxLoad = Math.max(deliveries.length, 1)
-                  const loadPercent = Math.min((numberOfDeliveries / maxLoad) * 100, 100)
-                  return <tr key={driver.id}>
-                    <td className="id-cell">#{driver.id}</td>
-                    <td><strong>{driver.name}</strong></td>
-                    <td className="coordinates">{driver.latitude !== null && driver.longitude !== null ? `${driver.latitude.toFixed(4)}, ${driver.longitude.toFixed(4)}` : '—'}</td>
-                    <td>{numberOfDeliveries}</td>
-                    <td><div className="table-load"><div className="load-track"><div className="load-fill" style={{ width: `${loadPercent}%` }} /></div><span>{numberOfDeliveries}</span></div></td>
-                    <td><span className="available">Disponible</span></td>
-                  </tr>
+                  const numberOfDeliveries = deliveries.filter(
+                    delivery => delivery.driver?.id === driver.id
+                  ).length
+
+                  return (
+                    <tr key={driver.id}>
+                      <td className="id-cell">
+                        #{driver.id}
+                      </td>
+
+                      <td>
+                        <strong>{driver.name}</strong>
+                      </td>
+
+                      <td className="coordinates">
+                        {driver.latitude !== null && driver.longitude !== null
+                          ? `${driver.latitude.toFixed(4)}, ${driver.longitude.toFixed(4)}`
+                          : '—'}
+                      </td>
+
+                      <td>
+                        {numberOfDeliveries}
+                      </td>
+
+                      <td>
+                        <span className="available">
+                          Disponible
+                        </span>
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            className="icon-button edit-icon"
+                            title="Modifier"
+                            onClick={() => setEditingDriver(driver)}
+                          >
+                            ✎
+                          </button>
+
+                          <button
+                            className="icon-button delete-icon"
+                            title="Supprimer"
+                            onClick={() => deleteDriver(driver.id)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
                 })}
-                {drivers.length === 0 && <tr><td colSpan={6} className="empty-row">Aucun livreur pour le moment.</td></tr>}
+
+                {drivers.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="empty-row">
+                      Aucun livreur pour le moment.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+
         </section>
+        {editingDriver && (
+          <div
+            className="modal-overlay"
+            onClick={() => setEditingDriver(null)}
+          >
+            <section
+              className="edit-modal"
+              onClick={event => event.stopPropagation()}
+            >
+              <div className="modal-header">
+                <div>
+                  <h2>Modifier le livreur</h2>
+                  <p>Livreur #{editingDriver.id}</p>
+                </div>
+
+                <button
+                  className="close-button"
+                  onClick={() => setEditingDriver(null)}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="delivery-form">
+
+                <input
+                  type="text"
+                  placeholder="Nom du livreur"
+                  value={editingDriver.name}
+                  onChange={event =>
+                    setEditingDriver({
+                      ...editingDriver,
+                      name: event.target.value
+                    })
+                  }
+                />
+
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="Latitude"
+                  value={editingDriver.latitude ?? ''}
+                  onChange={event =>
+                    setEditingDriver({
+                      ...editingDriver,
+                      latitude: Number(event.target.value)
+                    })
+                  }
+                />
+
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="Longitude"
+                  value={editingDriver.longitude ?? ''}
+                  onChange={event =>
+                    setEditingDriver({
+                      ...editingDriver,
+                      longitude: Number(event.target.value)
+                    })
+                  }
+                />
+
+              </div>
+
+              <div className="form-actions">
+
+                <button
+                  className="secondary-button"
+                  onClick={() => setEditingDriver(null)}
+                >
+                  Annuler
+                </button>
+
+                <button
+                  className="primary-button"
+                  onClick={updateDriver}
+                  disabled={isUpdatingDriver}
+                >
+                  {isUpdatingDriver ? 'Modification...' : 'Enregistrer'}
+                </button>
+
+              </div>
+            </section>
+          </div>
+        )}
       </main>
-    </div>
-  )
-}
+          </div>
+        )
+      }
 export default App

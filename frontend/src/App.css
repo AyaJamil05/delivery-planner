@@ -137,5 +137,47 @@ button { transition:background .18s ease,border-color .18s ease,color .18s ease,
 .close-button { width:30px; height:30px; border:none; border-radius:7px; background:#f4f3f7; color:#777582; cursor:pointer; font-size:19px; line-height:1; }
 .close-button:hover { background:#ebe9ef; color:var(--text); }
 @media (max-width:1050px) { .top-section{grid-template-columns:1fr;} .map-panel{order:-1;} .delivery-map{height:430px;} }
-@media (max-width:800px) { .header{height:58px;} .header-content{padding:0 18px;} .header h1{font-size:16px;} .top-nav{display:none;} .main-content{padding:18px;} .stats-grid{grid-template-columns:1fr 1fr;} .delivery-form,.analytics-content{grid-template-columns:1fr;} .form-actions{flex-direction:column;} .delivery-map{height:380px;} .panel-title-between{align-items:flex-start;flex-direction:column;} }
+@media (max-width:800px) { .header{height:58px;} .header-content{padding:0 18px;} .header h1{font-size:16px;} .top-nav{display:none;} .main-content{padding:18px;} .stats-grid{grid-template-columns:1fr 1fr;} .delivery-form,.analytics-content{grid-template-columns:1fr;} .form-actions{flex-direction:column;} .delivery-map{height:380px;} .panel-title-between{align-items:flex-start;flex-direction:column;} .driver-form {
+  grid-template-columns: 1fr;
+}}
 @media (max-width:520px) { .stats-grid{grid-template-columns:1fr;} .panel-title{padding-left:15px;padding-right:15px;} .delivery-form,.analytics-content{padding-left:15px;padding-right:15px;} .form-actions{padding-left:15px;padding-right:15px;} .map-legend{display:none;} }
+
+.drivers-title {
+  padding-bottom: 15px;
+}
+
+.driver-form {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr auto;
+  gap: 10px;
+  padding: 0 20px 20px;
+}
+
+.driver-form input {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #dedde5;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  color: var(--text);
+  background: #fff;
+}
+
+.driver-form input:hover {
+  border-color: #c9c6d4;
+}
+
+.driver-form input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(109,74,255,.09);
+}
+
+.driver-form .primary-button {
+  white-space: nowrap;
+}
+
+.drivers-table th,
+.drivers-table td {
+  text-align: center;
+}
