@@ -64,4 +64,14 @@ public class DeliveryController {
     public List<AssignmentResult> assignAllDeliveries() {
         return assignmentService.assignAllUnassignedDeliveries();
     }
+    
+    @PutMapping("/api/deliveries/{id}/status")
+    public Delivery updateStatus(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body) {
+
+        String status = body.get("status");
+
+        return deliveryService.updateStatus(id, status);
+    }
 }

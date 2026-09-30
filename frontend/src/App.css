@@ -88,6 +88,13 @@ button { transition:background .18s ease,border-color .18s ease,color .18s ease,
 .bar-fill,.load-fill { height:100%; border-radius:10px; transition:width .3s ease; }
 .assigned-bar,.load-fill { background:var(--primary); }
 .pending-bar { background:#d4a447; }
+.in-progress-bar {
+  background: #e67e22;
+}
+
+.delivered-bar {
+  background: #4caf50;
+}
 .mini-chart-title { font-size:11px; font-weight:700; color:var(--text); margin:8px 0 13px; }
 .load-row { display:grid; grid-template-columns:75px 1fr 20px; gap:8px; align-items:center; margin:9px 0; font-size:10px; color:var(--muted); }
 .load-row strong { color:var(--text); text-align:right; }

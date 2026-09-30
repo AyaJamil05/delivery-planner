@@ -72,5 +72,15 @@ public class DeliveryService {
 
         deliveryRepository.deleteById(id);
     }
+    
+    public Delivery updateStatus(Long id, String status) {
+
+        Delivery delivery = deliveryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Livraison introuvable"));
+
+        delivery.setStatus(status);
+
+        return deliveryRepository.save(delivery);
+    }
 
 }

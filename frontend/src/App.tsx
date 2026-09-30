@@ -347,6 +347,39 @@ function App() {
         })
     }
 
+    const updateStatus = (id: number, status: string) => {
+
+      fetch(`http://localhost:8080/api/deliveries/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: status
+        })
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erreur lors de la modification du statut')
+          }
+
+          return response.json()
+        })
+        .then(data => {
+
+          setDeliveries(prev =>
+            prev.map(delivery =>
+              delivery.id === data.id ? data : delivery
+            )
+          )
+
+        })
+        .catch(error => {
+          alert(error.message)
+          console.error(error)
+        })
+    }
+
   useEffect(() => {
 
     fetch('http://localhost:8080/api/deliveries')
@@ -428,9 +461,64 @@ function App() {
 
   }, [deliveries])
 
-  const assignedCount = deliveries.filter(delivery => delivery.driver !== null).length
-  const pendingCount = deliveries.length - assignedCount
+  const normalizeStatus = (status: string | null) => {
+    if (!status || status.trim() === '') {
+      return 'PENDING'
+    }
 
+    return status.trim().toUpperCase()
+  }
+
+  const pendingCount = deliveries.filter(
+    delivery => normalizeStatus(delivery.status) === 'PENDING'
+  ).length
+
+  const assignedCount = deliveries.filter(
+    delivery => normalizeStatus(delivery.status) === 'ASSIGNED'
+  ).length
+
+  const inProgressCount = deliveries.filter(
+    delivery => normalizeStatus(delivery.status) === 'IN_PROGRESS'
+  ).length
+
+  const deliveredCount = deliveries.filter(
+    delivery => normalizeStatus(delivery.status) === 'DELIVERED'
+  ).length
+
+  const getStatusClass = (status: string | null) => {
+    switch (normalizeStatus(status)) {
+      case 'ASSIGNED':
+        return 'status assigned'
+
+      case 'IN_PROGRESS':
+        return 'status in-progress'
+
+      case 'DELIVERED':
+        return 'status delivered'
+
+      case 'PENDING':
+      default:
+        return 'status pending'
+    }
+  }
+
+  const getStatusLabel = (status: string | null) => {
+    switch (normalizeStatus(status)) {
+      case 'ASSIGNED':
+        return 'Affectée'
+
+      case 'IN_PROGRESS':
+        return 'En cours'
+
+      case 'DELIVERED':
+        return 'Livrée'
+
+      case 'PENDING':
+      default:
+        return 'En attente'
+    }
+  }
+  
   return (
     <div className="app">
       <header className="header">
@@ -466,10 +554,74 @@ function App() {
               </div>
               <div className="analytics-content">
                 <div className="chart-block">
-                  <div className="chart-label-row"><span>Affectées</span><strong>{assignedCount}</strong></div>
-                  <div className="bar-track"><div className="bar-fill assigned-bar" style={{ width: `${deliveries.length ? (assignedCount / deliveries.length) * 100 : 0}%` }} /></div>
-                  <div className="chart-label-row"><span>En attente</span><strong>{pendingCount}</strong></div>
-                  <div className="bar-track"><div className="bar-fill pending-bar" style={{ width: `${deliveries.length ? (pendingCount / deliveries.length) * 100 : 0}%` }} /></div>
+
+                  <div className="chart-label-row">
+                    <span>En attente</span>
+                    <strong>{pendingCount}</strong>
+                  </div>
+
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill pending-bar"
+                      style={{
+                        width: `${deliveries.length
+                          ? (pendingCount / deliveries.length) * 100
+                          : 0}%`
+                      }}
+                    />
+                  </div>
+
+
+                  <div className="chart-label-row">
+                    <span>Affectées</span>
+                    <strong>{assignedCount}</strong>
+                  </div>
+
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill assigned-bar"
+                      style={{
+                        width: `${deliveries.length
+                          ? (assignedCount / deliveries.length) * 100
+                          : 0}%`
+                      }}
+                    />
+                  </div>
+
+
+                  <div className="chart-label-row">
+                    <span>En cours</span>
+                    <strong>{inProgressCount}</strong>
+                  </div>
+
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill in-progress-bar"
+                      style={{
+                        width: `${deliveries.length
+                          ? (inProgressCount / deliveries.length) * 100
+                          : 0}%`
+                      }}
+                    />
+                  </div>
+
+
+                  <div className="chart-label-row">
+                    <span>Livrées</span>
+                    <strong>{deliveredCount}</strong>
+                  </div>
+
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill delivered-bar"
+                      style={{
+                        width: `${deliveries.length
+                          ? (deliveredCount / deliveries.length) * 100
+                          : 0}%`
+                      }}
+                    />
+                  </div>
+
                 </div>
                 
               </div>
@@ -538,7 +690,7 @@ function App() {
                     <Popup>
                       <strong>{delivery.client}</strong><br />
                       {delivery.address}<br />
-                      Statut : {delivery.status ?? 'PENDING'}<br />
+                      Statut : {getStatusLabel(delivery.status)}<br />
                       Livreur : {delivery.driver ? delivery.driver.name : 'Aucun'}
                     </Popup>
                   </Marker>
@@ -608,12 +760,29 @@ function App() {
                       </td>
                       <td>{delivery.driver ? delivery.driver.name : <span className="muted">Aucun</span>}</td>
                       <td>
-                        <span className={delivery.status === 'ASSIGNED' ? 'status assigned' : 'status pending'}>
-                          {delivery.status ?? 'PENDING'}
+                        <span className={getStatusClass(delivery.status)}>
+                          {getStatusLabel(delivery.status)}
                         </span>
                       </td>
                       <td>
                         <div className="table-actions">
+                          {normalizeStatus(delivery.status) === 'ASSIGNED' && (
+                            <button
+                              className="secondary-button"
+                              onClick={() => updateStatus(delivery.id, 'IN_PROGRESS')}
+                            >
+                              Démarrer
+                            </button>
+                          )}
+
+                          {normalizeStatus(delivery.status) === 'IN_PROGRESS' && (
+                            <button
+                              className="primary-button"
+                              onClick={() => updateStatus(delivery.id, 'DELIVERED')}
+                            >
+                              Livrée
+                            </button>
+                          )}
                           <button className="icon-button edit-icon" title="Modifier" onClick={() => setEditingDelivery(delivery)}>✎</button>
                           <button className="icon-button delete-icon" title="Supprimer" onClick={() => deleteDelivery(delivery.id)}>×</button>
                         </div>
@@ -870,5 +1039,5 @@ function App() {
       </main>
           </div>
         )
-      }
+}
 export default App
