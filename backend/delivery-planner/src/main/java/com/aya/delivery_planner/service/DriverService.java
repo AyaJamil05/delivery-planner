@@ -55,4 +55,15 @@ public class DriverService {
 
         driverRepository.delete(driver);
     }
+    
+    public Driver updateLocation(Long id, Double latitude, Double longitude) {
+
+        Driver driver = driverRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chauffeur introuvable"));
+
+        driver.setLatitude(latitude);
+        driver.setLongitude(longitude);
+
+        return driverRepository.save(driver);
+    }
 }

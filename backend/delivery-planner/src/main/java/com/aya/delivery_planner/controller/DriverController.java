@@ -45,4 +45,16 @@ public class DriverController {
     public void deleteDriver(@PathVariable Long id) {
         driverService.deleteDriver(id);
     }
+    
+    @PutMapping("/api/drivers/{id}/location")
+    public Driver updateLocation(
+            @PathVariable Long id,
+            @RequestBody Driver driver) {
+
+        return driverService.updateLocation(
+                id,
+                driver.getLatitude(),
+                driver.getLongitude()
+        );
+    }
 }

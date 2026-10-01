@@ -80,6 +80,9 @@ function App() {
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null)
   const [isUpdatingDriver, setIsUpdatingDriver] = useState(false)
 
+  const [simulatingDeliveryId, setSimulatingDeliveryId] = useState<number | null>(null)
+  const [simulatedPositions, setSimulatedPositions] = useState<Record<number, [number, number]>>({})
+
   const assignAllDeliveries = () => {
 
       setIsAssigning(true)
@@ -386,6 +389,111 @@ function App() {
           alert(error.message)
           console.error(error)
         })
+    }
+
+    const simulateDelivery = (deliveryId: number) => {
+
+      const route = routes.find(
+        route => route.deliveryId === deliveryId
+      )
+
+      const delivery = deliveries.find(
+        delivery => delivery.id === deliveryId
+      )
+
+      if (!route || route.positions.length === 0 || !delivery?.driver) {
+        alert('Aucun trajet disponible pour cette livraison')
+        return
+      }
+
+      const driverId = delivery.driver.id
+
+      setSimulatingDeliveryId(deliveryId)
+
+      let currentPosition = 0
+
+      const step = Math.max(
+        1,
+        Math.floor(route.positions.length / 30)
+      )
+
+      const interval = setInterval(() => {
+
+        currentPosition += step
+
+        if (currentPosition >= route.positions.length) {
+
+          clearInterval(interval)
+
+          const finalPosition =
+            route.positions[route.positions.length - 1]
+
+          setSimulatedPositions(prev => ({
+            ...prev,
+            [driverId]: finalPosition
+          }))
+
+          fetch(`http://localhost:8080/api/drivers/${driverId}/location`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              latitude: finalPosition[0],
+              longitude: finalPosition[1]
+            })
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Erreur lors de la mise à jour finale')
+              }
+
+              return response.json()
+            })
+            .catch(error => {
+              console.error(error)
+            })
+
+          setSimulatingDeliveryId(null)
+
+          updateStatus(deliveryId, 'DELIVERED')
+
+          return
+        }
+
+        currentPosition = Math.min(
+          currentPosition,
+          route.positions.length - 1
+        )
+        const position = route.positions[currentPosition]
+
+        setSimulatedPositions(prev => ({
+          ...prev,
+          [driverId]: position
+        }))
+
+        fetch(`http://localhost:8080/api/drivers/${driverId}/location`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            latitude: position[0],
+            longitude: position[1]
+          })
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Erreur lors de la mise à jour de la position')
+            }
+
+            return response.json()
+          })
+          .catch(error => {
+            console.error(error)
+          })
+
+      }, 500)
     }
 
     const fetchRoute = (
@@ -780,7 +888,14 @@ function App() {
               {drivers.map(driver => {
                 if (driver.latitude === null || driver.longitude === null) return null
                 return (
-                  <Marker key={`driver-${driver.id}`} position={[driver.latitude, driver.longitude]} icon={driverIcon}>
+                  <Marker
+                    key={`driver-${driver.id}`}
+                    position={
+                      simulatedPositions[driver.id] ??
+                      [driver.latitude, driver.longitude]
+                    }
+                    icon={driverIcon}
+                  >
                     <Popup><strong>Livreur : {driver.name}</strong></Popup>
                   </Marker>
                 )
@@ -897,6 +1012,18 @@ function App() {
                               onClick={() => updateStatus(delivery.id, 'IN_PROGRESS')}
                             >
                               Démarrer
+                            </button>
+                          )}
+
+                          {normalizeStatus(delivery.status) === 'IN_PROGRESS' && (
+                            <button
+                              className="secondary-button"
+                              onClick={() => simulateDelivery(delivery.id)}
+                              disabled={simulatingDeliveryId === delivery.id}
+                            >
+                              {simulatingDeliveryId === delivery.id
+                                ? 'Simulation...'
+                                : 'Simuler'}
                             </button>
                           )}
 
