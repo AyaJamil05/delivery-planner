@@ -27,11 +27,6 @@ interface Delivery {
   driver: Driver | null
 }
 
-interface DeliveryDistance {
-  deliveryId: number
-  distance: number
-}
-
 interface Route {
   deliveryId: number
   positions: [number, number][]
@@ -69,7 +64,6 @@ function App() {
   const [isAdding, setIsAdding] = useState(false)
   const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [distances, setDistances] = useState<DeliveryDistance[]>([])
   const [routes, setRoutes] = useState<Route[]>([])
 
   const [driverName, setDriverName] = useState('')
@@ -611,48 +605,6 @@ function App() {
         delivery.latitude,
         delivery.longitude
       )
-
-      fetch(
-        `http://localhost:8080/api/distance` +
-        `?lat1=${delivery.driver.latitude}` +
-        `&lon1=${delivery.driver.longitude}` +
-        `&lat2=${delivery.latitude}` +
-        `&lon2=${delivery.longitude}`
-      )
-        .then(response => response.json())
-        .then(distance => {
-
-          setDistances(prev => {
-
-            const existing = prev.find(
-              item => item.deliveryId === delivery.id
-            )
-
-            if (existing) {
-              return prev.map(item =>
-                item.deliveryId === delivery.id
-                  ? { deliveryId: delivery.id, distance }
-                  : item
-              )
-            }
-
-            return [
-              ...prev,
-              {
-                deliveryId: delivery.id,
-                distance
-              }
-            ]
-          })
-
-        })
-        .catch(error => {
-          console.error(
-            'Erreur lors du calcul de la distance :',
-            error
-          )
-        })
-
     })
 
   }, [deliveries])
