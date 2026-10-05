@@ -1038,7 +1038,7 @@ function App() {
 
           <div className="panel-title drivers-title">
             <div>
-              <h2>Gestion des livreurs</h2>
+              <h2>Livreurs</h2>
             </div>
           </div>
 
